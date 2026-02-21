@@ -1,0 +1,349 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a Professional Technical Documentation AI Agent.\n\nYour mission:\n\n1. Extract the JIRA Ticket ID from the user message.\n2. Use the JIRA tool to retrieve full ticket details.\n3. Analyze:\n   - Summary\n   - Description\n   - Acceptance Criteria\n   - Functional Requirements\n4. Generate a structured User Guide document.\n\nCRITICAL OUTPUT RULES:\n\n- You MUST return ONLY valid JSON.\n- Do NOT return markdown.\n- Do NOT return explanation.\n- Do NOT wrap the JSON in ``` blocks.\n- Do NOT include any text before or after JSON.\n- The response must be machine-readable JSON only.\n\nSTRICT OUTPUT FORMAT:\n\n{\n  \"title\": \"\",\n  \"sections\": [\n    { \"heading\": \"Overview\", \"content\": \"\" },\n    { \"heading\": \"Audience\", \"content\": \"\" },\n    { \"heading\": \"Prerequisites\", \"content\": \"\" },\n    { \"heading\": \"Feature Description\", \"content\": \"\" },\n    { \"heading\": \"User Workflow\", \"content\": \"\" },\n    { \"heading\": \"Step-by-Step Instructions\", \"content\": \"\" },\n    { \"heading\": \"Error Handling\", \"content\": \"\" },\n    { \"heading\": \"Edge Cases\", \"content\": \"\" },\n    { \"heading\": \"FAQ\", \"content\": \"\" },\n    { \"heading\": \"Support Information\", \"content\": \"\" }\n  ]\n}\n\nIMPORTANT:\n- \"sections\" must always be an array.\n- \"content\" must always be a string.\n- Use \\\\n for line breaks inside content.\n- Never return markdown symbols like #, ##, **, |, or tables.\n- Never return null values.\n- Always fill every section even if brief."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2384,
+        1520
+      ],
+      "id": "0a2a302d-08eb-4ae5-aa15-7401cdd5be1f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        1712
+      ],
+      "id": "4c0407d7-677a-4cb4-a277-d65ac907388f",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "1uOjqERbpJ1qz0hA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "={{$fromAI(\"jira_id\")}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jiraTool",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        1712
+      ],
+      "id": "917d1af3-2fb8-4e5e-acdd-7214e38dd012",
+      "name": "JIRA",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "qQIYc6mkrodaRLm8",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{$json.documentId}}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.requests[0].insertText.text}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2896,
+        1872
+      ],
+      "id": "c6af8ad7-23b4-4207-9671-a4007b3b00df",
+      "name": "Update a document1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "eoOC3XaMqQ2oNhmr",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1377803566",
+        "text": "=\nYour User Guide Document Has Been Generated, \nPlease check here https://docs.google.com/document/d/{{ $json.documentId }}\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3440,
+        1712
+      ],
+      "id": "1ce4047d-de59-407e-9675-493dcb94e0a2",
+      "name": "Send a text message",
+      "webhookId": "6aadb05a-9332-493e-9649-81d20edf86bf",
+      "credentials": {
+        "telegramApi": {
+          "id": "N6dcFZxoPrTHdbUH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.item.json;\n\n// Detect where AI JSON is stored\nlet data = input.output || input.response || input.answer || input;\n\n// If AI returned JSON as STRING, parse it\nif (typeof data === \"string\") {\n  try {\n    data = JSON.parse(data);\n  } catch (err) {\n    throw new Error(\"AI output is not valid JSON string.\");\n  }\n}\n\n// Validate structure\nif (!data.title || !data.sections) {\n  console.log(\"Received data:\", data);\n  throw new Error(\"AI JSON structure not found at expected level.\");\n}\n\n// Build plain text\nlet finalText = \"\";\nfinalText += data.title + \"\\n\\n\";\n\nfor (const section of data.sections) {\n  finalText += section.heading + \"\\n\";\n  finalText += \"----------------------------------------\\n\";\n  finalText += section.content + \"\\n\\n\";\n}\n\nreturn [{\n  documentId: \"1LYj7njaT5EGjd5DDt90kAYpqxcccNxKOWIF0Mv3DFDM\",\n  requests: [\n    {\n      insertText: {\n        location: { index: 1 },\n        text: finalText\n      }\n    }\n  ]\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2864,
+        1504
+      ],
+      "id": "d406dc61-69d4-4997-abf5-6a9db200e8f5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a AI Agent  note \n**Double click** to edit me. \n\n**AI Agent extracts JIRA ID.**\n\nAI Agent calls JIRA Tool.\n\nJIRA Tool returns issue data.\n\nGroq model generates structured JSON.",
+        "height": 592,
+        "width": 448
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2288,
+        1264
+      ],
+      "typeVersion": 1,
+      "id": "f96dc1ce-fd91-4bb6-b7ac-1dfcc40a61e3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a Code note \n**Double click** to edit me.\n\n**Code Node converts JSON to plain formatted text.**",
+        "height": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2800,
+        1344
+      ],
+      "typeVersion": 1,
+      "id": "6d0dfe59-3105-4569-93f5-fc9ab3bcd126",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## I'm DOC node\n\n**Update the Document**",
+        "height": 288,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2816,
+        1728
+      ],
+      "typeVersion": 1,
+      "id": "88d642fb-950d-4c12-8e95-2dc574077443",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5aef4a1d-3959-415b-aacb-d1b1da8cc1aa",
+              "leftValue": "={{ $('Code in JavaScript').item.json.requests[0].insertText.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3104,
+        1872
+      ],
+      "id": "b50e2ce2-4047-428d-9ed0-70d38e086130",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "1377803566",
+        "text": "=\nYour User Guide Document Not Generated, \nPlease check here https://docs.google.com/document/d/{{ $json.documentId }}\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3440,
+        1920
+      ],
+      "id": "8357bbfa-d42d-437f-9b63-5beabcd3902c",
+      "name": "Send a text message1",
+      "webhookId": "6aadb05a-9332-493e-9649-81d20edf86bf",
+      "credentials": {
+        "telegramApi": {
+          "id": "N6dcFZxoPrTHdbUH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        2064,
+        1632
+      ],
+      "id": "a9d894f8-1989-44e3-8b35-2e23bbde463a",
+      "name": "When chat message received",
+      "webhookId": "e8f75e78-6539-4d33-9f12-c9597fe09910"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JIRA": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Update a document1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        []
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6cdda9ee-e2fa-44a6-8fea-141a47faee72",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "I5Q7Hfbc6I09sTF1",
+  "tags": []
+}

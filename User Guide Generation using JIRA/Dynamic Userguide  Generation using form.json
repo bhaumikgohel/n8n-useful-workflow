@@ -1,0 +1,600 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={\n  \"jira_id\": \"{{$json['JIRA ID']}}\",\n  \"audience\": \"{{ $json[\"Audience \"] }}\"\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a Professional Technical Documentation AI Agent.\n\nInputs will be provided as structured fields:\n\n- jira_id\n- audience\n\nYour job:\n\n1. Use the JIRA tool to retrieve full ticket details using jira_id.\n2. Generate a structured user guide based on the audience type.\n3. Follow the audience-specific section structure exactly.\n\nReturn ONLY valid JSON.\nNo markdown.\nNo explanation.\nNo text outside JSON.\n\nStrict Output Format:\n\n{\n  \"jira_id\": \"\",\n  \"audience\": \"\",\n  \"title\": \"\",\n  \"sections\": [\n    {\n      \"heading\": \"\",\n      \"content\": \"Use \\\\n for line breaks\"\n    }\n  ]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -688,
+        -272
+      ],
+      "id": "5befbbbd-c821-4c1a-967b-dfe2abbb4150",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -680,
+        -48
+      ],
+      "id": "5c9f9d5c-f284-4a49-ab78-767b53e133f0",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "1uOjqERbpJ1qz0hA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "={{$fromAI(\"jira_id\")}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jiraTool",
+      "typeVersion": 1,
+      "position": [
+        -552,
+        -48
+      ],
+      "id": "4b38ecfe-a0ba-4381-82db-952a38c192d7",
+      "name": "JIRA",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "qQIYc6mkrodaRLm8",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{$json.documentId}}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.jira_id }}\n{{ $json.requests[0].insertText.text}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        128,
+        -272
+      ],
+      "id": "f7e0de34-f0c5-491e-abb0-d79424a04efc",
+      "name": "Update a document1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "eoOC3XaMqQ2oNhmr",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get raw AI output\nconst raw = $input.item.json.output;\n\n// Parse JSON string safely\nlet data;\ntry {\n  data = JSON.parse(raw);\n} catch (error) {\n  console.log(\"Raw output:\", raw);\n  throw new Error(\"AI output is not valid JSON string.\");\n}\n\n// Validate required fields\nif (!data.title || !data.sections || !data.jira_id) {\n  console.log(\"Parsed Data:\", data);\n  throw new Error(\"AI JSON structure missing required fields.\");\n}\n\n// Build plain text document\nlet finalText = \"\";\nfinalText += data.title + \"\\n\\n\";\nfinalText += \"Audience: \" + data.audience + \"\\n\\n\";\n\nfor (const section of data.sections) {\n  finalText += section.heading + \"\\n\";\n  finalText += \"----------------------------------------\\n\";\n  finalText += section.content + \"\\n\\n\";\n}\n\n// Your Google Doc ID\nconst documentId = \"1LYj7njaT5EGjd5DDt90kAYpqxcccNxKOWIF0Mv3DFDM\";\nconst documentLink = `https://docs.google.com/document/d/${documentId}/edit`;\n\nreturn [{\n  documentId,\n  documentLink,\n  jira_id: data.jira_id,\n  audience: data.audience,\n  requests: [\n    {\n      insertText: {\n        location: { index: 1 },\n        text: finalText\n      }\n    }\n  ]\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        -272
+      ],
+      "id": "eca0e209-e92e-4890-93cc-faffd7a3a436",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a AI Agent  note \n**Double click** to edit me. \n\n**AI Agent extracts JIRA ID.**\n\nAI Agent calls JIRA Tool.\n\nJIRA Tool returns issue data.\n\nGroq model generates structured JSON.",
+        "height": 592,
+        "width": 448
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -800,
+        -496
+      ],
+      "typeVersion": 1,
+      "id": "d80ae175-df42-44f2-9142-6277cb4b2d3f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a Code note \n**Double click** to edit me.\n\n**Code Node converts JSON to plain formatted text.**",
+        "height": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -272,
+        -432
+      ],
+      "typeVersion": 1,
+      "id": "f9a60b93-9f05-4eed-a4ad-dc53138fc55e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## I'm DOC node\n\n**Update the Document**",
+        "height": 288,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "e3ae7154-c0d4-4370-a1fa-e53e654fb9a1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "You are a Professional Technical Documentation AI Agent.\n\nYour job:\n\n1. Extract the JIRA Ticket ID from the user message.\n2. Extract the target audience from the user message.\n   Valid audiences:\n   - End Users\n   - Internal Team\n   - Clients\n   - Technical Admins\n\nIf no audience is specified, default to \"End Users\".\n\n3. Use the JIRA tool to retrieve full ticket details.\n4. Analyze summary, description, and acceptance criteria.\n5. Generate a structured user guide based on the audience type.\n\nIMPORTANT OUTPUT RULES:\n\n- You MUST return ONLY valid JSON.\n- Do NOT return markdown.\n- Do NOT return explanation.\n- Do NOT wrap JSON in ``` blocks.\n- No extra text before or after JSON.\n\nSTRICT OUTPUT FORMAT:\n\n{\n  \"jira_id\": \"TICKET-ID\",\n  \"audience\": \"Detected Audience\",\n  \"title\": \"Document Title\",\n  \"sections\": [\n    {\n      \"heading\": \"Section Name\",\n      \"content\": \"Section content using \\\\n for line breaks\"\n    }\n  ]\n}\n\nAUDIENCE-SPECIFIC STRUCTURE RULES:\n\nIf audience = \"End Users\":\nUse sections:\nOverview\nWho Can Use This Feature\nPrerequisites\nHow It Works (High-Level)\nStep-by-Step Instructions\nCommon Errors & Messages\nFAQ\nSupport Information\n\nIf audience = \"Internal Team\":\nUse sections:\nOverview\nBusiness Objective\nScope & Assumptions\nFunctional Description\nUser Roles & Permissions\nDetailed User Workflow\nValidation Rules\nError Handling & Logging\nEdge Cases\nTesting Scenarios\nDependencies\n\nIf audience = \"Clients\":\nUse sections:\nExecutive Summary\nBusiness Value\nFeature Overview\nUser Benefits\nUser Workflow\nStep-by-Step Instructions\nSecurity & Compliance Considerations\nLimitations & Constraints\nFAQ\nSupport & SLA Information\n\nIf audience = \"Technical Admins\":\nUse sections:\nOverview\nArchitecture Overview\nSystem Components Involved\nConfiguration Details\nDatabase Impact\nAPI Endpoints & Integrations\nSecurity Implementation\nLogging & Monitoring\nError Codes & Handling Logic\nDeployment Considerations\nRollback Strategy\nPerformance Considerations\n\nCRITICAL:\n- \"sections\" must always be an array.\n- \"content\" must always be a string.\n- Use \\\\n for line breaks.\n- Never return null.\n- Always fill every section.",
+        "height": 848,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1632,
+        -608
+      ],
+      "typeVersion": 1,
+      "id": "4feefd08-728c-46de-bb17-de878e2e947c",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2771d78c-b400-4d34-8e9c-fbcd8d647c73",
+              "leftValue": "={{ $('Code in JavaScript').item.json.requests[0].insertText.text }}",
+              "rightValue": "={{ $json.documentId }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        -288
+      ],
+      "id": "b513f609-2ebd-4a6f-87d4-954a23d2ed9d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "1377803566",
+        "text": "={{ $json.Status === \"SUCCESS\" \n  ? \"✅ User Guide Generated Successfully\\n\\nJIRA ID: \" + $json[\"JIRA ID\"] + \n    \"\\nAudience: \" + $json.Audience + \n    \"\\nDocument: \" + $json[\"Document Link\"]\n  : \"❌ User Guide Generation Failed\\n\\nJIRA ID: \" + $json[\"JIRA ID\"] + \n    \"\\nAudience: \" + $json.Audience\n}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        -288
+      ],
+      "id": "69c26341-657d-4c17-b900-ea4d1e05dd7c",
+      "name": "Success Msg",
+      "webhookId": "6aadb05a-9332-493e-9649-81d20edf86bf",
+      "credentials": {
+        "telegramApi": {
+          "id": "N6dcFZxoPrTHdbUH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Nbtbh2p3k1Xb1v6gVF7HsqIqsXS3AK4AB0QOoXGfBjQ",
+          "mode": "list",
+          "cachedResultName": "User Guide Status",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nbtbh2p3k1Xb1v6gVF7HsqIqsXS3AK4AB0QOoXGfBjQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nbtbh2p3k1Xb1v6gVF7HsqIqsXS3AK4AB0QOoXGfBjQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "JIRA ID": "=https://myqatask.atlassian.net/browse/{{ $('Code in JavaScript').item.json.jira_id }}",
+            "Audience": "={{ $('Code in JavaScript').item.json.audience }}",
+            "Status": "Success",
+            "Document Link": "={{ $('Code in JavaScript').item.json.documentLink }}",
+            "Generated At": "={{new Date().toDateTime(\"dd-MM-yyyy\").toString()}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "JIRA ID",
+              "displayName": "JIRA ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Audience",
+              "displayName": "Audience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Document Link",
+              "displayName": "Document Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Generated At",
+              "displayName": "Generated At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        -384
+      ],
+      "id": "5e9c476a-a1ef-42cf-81f7-b8f248da2f3b",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8Zj71syeKrZAMcbJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Nbtbh2p3k1Xb1v6gVF7HsqIqsXS3AK4AB0QOoXGfBjQ",
+          "mode": "list",
+          "cachedResultName": "User Guide Status",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nbtbh2p3k1Xb1v6gVF7HsqIqsXS3AK4AB0QOoXGfBjQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nbtbh2p3k1Xb1v6gVF7HsqIqsXS3AK4AB0QOoXGfBjQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "JIRA ID": "=https://myqatask.atlassian.net/browse/{{ $('Code in JavaScript').item.json.jira_id }}",
+            "Audience": "={{ $('Code in JavaScript').item.json.audience }}",
+            "Status": "Fail",
+            "Document Link": "=NA",
+            "Generated At": "={{new Date().toDateTime(\"dd-MM-yyyy\").toString()}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "JIRA ID",
+              "displayName": "JIRA ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Audience",
+              "displayName": "Audience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Document Link",
+              "displayName": "Document Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Generated At",
+              "displayName": "Generated At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        -192
+      ],
+      "id": "f236106b-ddfe-4faa-8355-9e2f645a9993",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8Zj71syeKrZAMcbJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        864,
+        -288
+      ],
+      "id": "bb7987bd-61ce-4d1d-bc2b-a07581b2f728",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "formTitle": "User Guide Document Generation",
+        "formDescription": "It generate User Guide Document base on Enter JIRA Id and Selected Audience",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "JIRA ID"
+            },
+            {
+              "fieldLabel": "Audience ",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "End Users"
+                  },
+                  {
+                    "option": "Internal Team"
+                  },
+                  {
+                    "option": "Clients"
+                  },
+                  {
+                    "option": "Technical Admins"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -960,
+        -272
+      ],
+      "id": "f6a1b20f-4d3e-410a-80fe-05fef1c8eee9",
+      "name": "On form submission",
+      "webhookId": "5c15f71f-bc78-46a5-94f1-ee0e587255e0"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JIRA": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Update a document1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Msg": {
+      "main": [
+        []
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Success Msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "826ae7a4-d345-4f9f-9e23-1dcbf8166433",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "pVgA0x0sUi0yRd35",
+  "tags": []
+}

@@ -1,0 +1,56 @@
+{
+  "name": "HTTPS Request",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -16
+      ],
+      "id": "fad8f7dc-03c9-42b0-bd9b-f83d8cf8bca0",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.agify.io/?name=michael",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        -16
+      ],
+      "id": "8216455c-a4e1-4534-ac7a-3f601ff6136c",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f23ef7cd-db88-4e5d-8bb4-aea4ba001b34",
+  "meta": {
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "sf8VAwrRpCXeFG48",
+  "tags": []
+}

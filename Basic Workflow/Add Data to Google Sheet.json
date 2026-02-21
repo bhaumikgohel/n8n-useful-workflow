@@ -1,0 +1,168 @@
+{
+  "name": "Add Data to Google Sheet",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        16
+      ],
+      "id": "f7306d97-61f3-42f3-b32c-ec600687ffe2",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1G3ZhY5A6uZaxUikc1ar3BXlXMbkFmhmsNubiYKoFkBo",
+          "mode": "list",
+          "cachedResultName": "ai ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G3ZhY5A6uZaxUikc1ar3BXlXMbkFmhmsNubiYKoFkBo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "user",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G3ZhY5A6uZaxUikc1ar3BXlXMbkFmhmsNubiYKoFkBo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json[\"First Name\"] }}",
+            "Subject": "={{ $json.Subject }}",
+            "Email": "={{ $json.Email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        176,
+        32
+      ],
+      "id": "d1b4dc59-a7c2-4345-ad1e-9c21522939b2",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8Zj71syeKrZAMcbJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d022729e-94d8-4b46-b547-b7275c96191a",
+              "name": "First Name",
+              "value": "Bhaumik",
+              "type": "string"
+            },
+            {
+              "id": "12a2b2ce-da8d-4adf-9880-4b4fc10b6ccb",
+              "name": "Subject",
+              "value": "Software Testing",
+              "type": "string"
+            },
+            {
+              "id": "bc56b4dc-2a2e-4758-8d88-529a6d1d01c4",
+              "name": "Email",
+              "value": "bhaumik@yopmail.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        16
+      ],
+      "id": "cf6df2d5-d541-4fd2-a6b1-04af93d0320c",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "431b005a-b104-4ce2-a397-be7afff5aef9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "gWR4ia5IBVYNRCR6",
+  "tags": []
+}

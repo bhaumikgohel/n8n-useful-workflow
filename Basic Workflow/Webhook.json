@@ -1,0 +1,67 @@
+{
+  "name": "Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "test-webhook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "d8038649-f555-43b7-b332-00a6e98b29af",
+      "name": "Webhook",
+      "webhookId": "5d726b47-fa52-4a9a-b94b-521b2fea67ae"
+    },
+    {
+      "parameters": {
+        "url": "https://www.baps.org/",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        144,
+        0
+      ],
+      "id": "a435f189-bd98-4d44-bbca-0a0fec53b174",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c8cd94e1-4458-467e-9d4e-6a1397a6f063",
+  "meta": {
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "BMkgrFrkodt5qJ5M",
+  "tags": []
+}

@@ -1,0 +1,367 @@
+{
+  "name": "QA Environment Health Check Agent - Strict Validation",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://alpha.app.waas.sdsaz.us",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": "={{ true }}",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "440578a2-7e67-4ae5-9437-caef262fe37f",
+      "name": "HTTP Request - Check Site",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -1424,
+        544
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const statusCode = $json.statusCode ?? 0;\n\nconst result = {\n  url: \"https://alpha.app.waas.sdsaz.us\",\n  statusCode: statusCode,\n  ready: statusCode == 200,\n  message: statusCode == 200 ? \"Environment READY - Status Code 200\" : `Environment NOT READY - Status Code ${statusCode}`,\n  checkedAt: new Date().toISOString()\n};\n\nreturn [result];"
+      },
+      "id": "bf99dcb0-b648-438e-8372-72e701d3727d",
+      "name": "Code - Validate Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.statusCode }}",
+              "operation": "equal",
+              "value2": 200
+            }
+          ]
+        }
+      },
+      "id": "befabe58-7d60-4944-bb36-5dbaee4b7121",
+      "name": "IF - Is Environment Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  status: \"READY\",\n  description: \"Alpha Environment is READY. You can start testing.\",\n  url: $json.url,\n  statusCode: $json.statusCode,\n  checkedAt: $json.checkedAt\n}];"
+      },
+      "id": "7ce629e5-d55d-4f92-a7d2-18cf606e07a1",
+      "name": "READY Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -752,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  status: \"NOT READY\",\n  description: \"Alpha Environment is NOT READY. Do NOT start testing.\",\n  url: $json.url,\n  statusCode: $json.statusCode,\n  checkedAt: $json.checkedAt\n}];"
+      },
+      "id": "3079d0aa-917c-4806-9b9a-3373d952ec1f",
+      "name": "NOT READY Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -752,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "1377803566",
+        "text": "=URL: {{ $json.url }}\nMessage: {{ $json.description }}\nStatusCode: {{ $json.statusCode }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -512,
+        736
+      ],
+      "id": "1ad3bd9d-74a2-44bb-9a17-e765f1e09ec9",
+      "name": "Send a text message",
+      "webhookId": "f8b4351c-5479-409c-927c-d6089c8564f5",
+      "credentials": {
+        "telegramApi": {
+          "id": "N6dcFZxoPrTHdbUH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1648,
+        736
+      ],
+      "id": "1d50bade-6c94-465e-b6ae-3b5d5daff51d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://qa.app.waas.sdsaz.us/",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": "={{ true }}",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "1ada99e8-826f-401d-9cb5-8df9dfb0f70a",
+      "name": "HTTP Request - Check Site1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -1424,
+        928
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const statusCode = $json.statusCode ?? 0;\n\nconst result = {\n  url: \"https://qa.app.waas.sdsaz.us/\",\n  statusCode: statusCode,\n  ready: statusCode == 200,\n  message: statusCode == 200 ? \"Environment READY - Status Code 200\" : `Environment NOT READY - Status Code ${statusCode}`,\n  checkedAt: new Date().toISOString()\n};\n\nreturn [result];"
+      },
+      "id": "5fe79636-9452-4858-a996-f08769175036",
+      "name": "Code - Validate Status1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.statusCode }}",
+              "operation": "equal",
+              "value2": 200
+            }
+          ]
+        }
+      },
+      "id": "f9df0022-0a16-4dc6-8db3-135221837be4",
+      "name": "IF - Is Environment Ready?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  status: \"READY\",\n  description: \"QA Environment is READY. You can start testing.\",\n  url: $json.url,\n  statusCode: $json.statusCode,\n  checkedAt: $json.checkedAt\n}];"
+      },
+      "id": "5f0cd85c-03ad-4a0e-9c14-7e58afb97f2b",
+      "name": "READY Output1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -752,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  status: \"NOT READY\",\n  description: \"QA Environment is NOT READY. Do NOT start testing.\",\n  url: $json.url,\n  statusCode: $json.statusCode,\n  checkedAt: $json.checkedAt\n}];"
+      },
+      "id": "96677f57-d94e-4024-9889-7820c2dac950",
+      "name": "NOT READY Output1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -752,
+        1024
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request - Check Site": {
+      "main": [
+        [
+          {
+            "node": "Code - Validate Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Validate Status": {
+      "main": [
+        [
+          {
+            "node": "IF - Is Environment Ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Is Environment Ready?": {
+      "main": [
+        [
+          {
+            "node": "READY Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NOT READY Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "READY Output": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOT READY Output": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Check Site",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request - Check Site1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Validate Status1": {
+      "main": [
+        [
+          {
+            "node": "IF - Is Environment Ready?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Is Environment Ready?1": {
+      "main": [
+        [
+          {
+            "node": "READY Output1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NOT READY Output1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Check Site1": {
+      "main": [
+        [
+          {
+            "node": "Code - Validate Status1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "READY Output1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOT READY Output1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a1f42ac9-d754-48d0-ad8e-2d241e317475",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "rhoIFpiNGwsI2J2R",
+  "tags": []
+}

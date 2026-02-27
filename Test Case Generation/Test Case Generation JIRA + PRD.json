@@ -1,0 +1,188 @@
+{
+  "name": "Test Case Generation JIRA + PRD",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -848,
+        -192
+      ],
+      "id": "25798e5c-c7b5-489c-a19f-1bdc77d85644",
+      "name": "When chat message received",
+      "webhookId": "31caedc9-9894-4bee-a651-cd6be0517dff"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant, You have 10 years of Manual Testing experience, you are a personal who know everything about functionality\n\n| Test Case ID | Summary | Description | Preconditions | Step No | Test Step | Test Data | Expected Result | Priority | Test Type | Jira Ticket ID |\n| ------------ | ------- | ----------- | ------------- | ------- | --------- | --------- | --------------- | -------- | --------- | -------------- |\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -576,
+        -192
+      ],
+      "id": "64e1ee7b-443f-4f7e-893d-605662aa42fa",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        32
+      ],
+      "id": "47d78eef-3ecd-415f-9847-db162d03794a",
+      "name": "BRAIN",
+      "credentials": {
+        "groqApi": {
+          "id": "1uOjqERbpJ1qz0hA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -832,
+        96
+      ],
+      "id": "03a4f023-05fa-4296-8474-07c4e0cf0e0c",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "KfAFS6mmfl2q0Sxd",
+          "name": "Ollama account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "SCRUM-18",
+        "simplifyOutput": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jiraTool",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        32
+      ],
+      "id": "c4ac219d-eee3-4c84-8470-ec3fa479e299",
+      "name": "GET_JIRA_TKT",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "qQIYc6mkrodaRLm8",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "https://docs.google.com/document/d/1i9LTOTA3Ypx41l9k88UtIwAUCCQPGyFuiiY6SkTClhs/edit?usp=sharing"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        32
+      ],
+      "id": "d4cec448-d41a-4493-81e5-a3db7515f840",
+      "name": "PRD",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "eoOC3XaMqQ2oNhmr",
+          "name": "Google Docs account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BRAIN": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "GET_JIRA_TKT": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PRD": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e79080a1-35ea-436d-96d5-088de758a00f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "udB6OZ7LagzZDlFo",
+  "tags": [
+    {
+      "updatedAt": "2026-02-15T14:01:12.046Z",
+      "createdAt": "2026-02-15T14:01:12.046Z",
+      "id": "I5GOouxJRDdAxpZl",
+      "name": "Test case generation"
+    }
+  ]
+}

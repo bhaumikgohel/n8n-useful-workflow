@@ -1,0 +1,425 @@
+{
+  "name": "Bhaumik LinkedIn Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## I'm a Trigger node\n**I'm Trigger** the action",
+        "height": 464
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "f82ad683-906d-4b59-9621-9cbc75a91789",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a Topic AI Agent node\n**I'm Follow the Prompt** \n**I am Generating the topic** ",
+        "height": 464,
+        "width": 384,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        128,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "5254fd08-8d35-4724-be46-bcbfbc123065",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "d58fb6b5-131d-4cdb-aae8-670012cb417b",
+      "name": "When chat message received",
+      "webhookId": "9e41fe93-97bb-40b6-87e2-fbfd764ea8ca"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"topic\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        208
+      ],
+      "id": "5c753bbd-2381-4cec-8139-450417b83eab",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a professional LinkedIn content strategist.\n\nBased on the user's input, generate ONE engaging LinkedIn post topic.\n\nUser Input:\n{{$json[\"chatInput\"]}}\n\nReturn only a short topic title."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        176,
+        16
+      ],
+      "id": "ad134e9b-d8e1-4684-8438-ac76e8117d62",
+      "name": "Topic Creator AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an expert LinkedIn ghostwriter.\n\nWrite a high-engagement LinkedIn post about:\n\n{{ $json.output.topic }}\n\nRules:\n- Hook in first line\n- Short paragraphs\n- Add 3-5 relevant hashtags\n- Professional tone\n- Max 200 words\n\nThen create a professional AI image generation prompt describing a modern, minimalistic LinkedIn-style illustration related to the post topic.\n\nIMPORTANT:\nReturn ONLY valid JSON.\nDo NOT add explanations.\nDo NOT add text before or after JSON.\n\nAlso create a professional AI image prompt based on the post.\n\nReturn response strictly in this JSON format:\n\n{\n  \"post\": \"LinkedIn post content\",\n  \"image_prompt\": \"AI image description prompt\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        608,
+        16
+      ],
+      "id": "4ed17079-86bb-44c1-a950-be79347a0a62",
+      "name": " Post Creation"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"post\": {\n      \"type\": \"string\"\n    },\n    \"image_prompt\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        752,
+        208
+      ],
+      "id": "a37d8c78-3732-4cc6-94f2-9380e1239886",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a Post Creation AI Agent node\n**I'm Create the Image + Post Content** ",
+        "height": 464,
+        "width": 384,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        560,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "6210bfcf-1251-4399-b59b-50b9266989e5",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a SAVE POST AI Agent node\n**I'm SAVE the Content** ",
+        "height": 464,
+        "width": 384,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        976,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "c275d67a-9b4f-4d2b-881c-777a5c23cfce",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1G3ZhY5A6uZaxUikc1ar3BXlXMbkFmhmsNubiYKoFkBo",
+          "mode": "list",
+          "cachedResultName": "ai ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G3ZhY5A6uZaxUikc1ar3BXlXMbkFmhmsNubiYKoFkBo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 897603201,
+          "mode": "list",
+          "cachedResultName": "linkedindailypost",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G3ZhY5A6uZaxUikc1ar3BXlXMbkFmhmsNubiYKoFkBo/edit#gid=897603201"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Topic": "={{ $('Topic Creator AI Agent').item.json.output.topic }}",
+            "Post": "={{ $json.output.post }}",
+            "Date": "={{$now}}",
+            "Image Prompt": "={{ $json.output.image_prompt }} in clickbite Style"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Post",
+              "displayName": "Post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Image Prompt",
+              "displayName": "Image Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1024,
+        16
+      ],
+      "id": "c1c73ba4-5cdb-466f-a83e-6fa31d4e1f5f",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gZhohnx8se81OPTG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        176,
+        224
+      ],
+      "id": "9a8d9382-c9aa-454f-943d-097eb13c57b7",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "OlEuHmGj2623mLHA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "communityManagement",
+        "text": "={{ $('Append row in sheet').item.json.Post }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        16
+      ],
+      "id": "7c33e7b5-4d31-43cb-a948-a8b2f07b4249",
+      "name": "Create a post"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        608,
+        208
+      ],
+      "id": "9d26945a-6d8a-4e06-8309-a2ac89e56981",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "OlEuHmGj2623mLHA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "={{ $json['Image Prompt'] }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1232,
+        16
+      ],
+      "id": "e2f061f9-ec96-4273-8bd8-0e0a8fff80a1",
+      "name": "Generate an image1",
+      "credentials": {
+        "openAiApi": {
+          "id": "DImzBIZAeLnsxJWx",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Topic Creator AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Topic Creator AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic Creator AI Agent": {
+      "main": [
+        [
+          {
+            "node": " Post Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": " Post Creation",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    " Post Creation": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Topic Creator AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Generate an image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": " Post Creation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image1": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a post": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9dcddcff-5499-4c7b-9754-b4cceac8f81a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "224d0a4c17d8e87c05e2dfe3da3ef44c799ce011e557b5ba5b51241f16e5bfef"
+  },
+  "id": "F8fBWPGlcW7OvamW",
+  "tags": []
+}

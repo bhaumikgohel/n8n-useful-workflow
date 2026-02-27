@@ -1,0 +1,250 @@
+{
+  "name": "QA Environment Health Check - Groq Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        48,
+        64
+      ],
+      "id": "59390900-2df5-4406-981a-34ee26446acc"
+    },
+    {
+      "parameters": {
+        "url": "https://qa.app.waas.sdsaz.us/auth/login",
+        "options": {}
+      },
+      "name": "API Health Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        304,
+        64
+      ],
+      "id": "6c0f7947-0492-4c1a-b20e-3ed6586f5c71"
+    },
+    {
+      "parameters": {
+        "text": "=You are a QA Environment Analyzer, Analyze the API health response below:\n\n{{$json.data.isNotEmpty()}}\n\nReturn JSON only:\n{\n  \"environment_status\": \"READY or NOT READY\",\n  \"reason\": \"Short explanation\"\n}",
+        "options": {}
+      },
+      "name": "AI Agent - Analyze",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1,
+      "position": [
+        560,
+        64
+      ],
+      "id": "6b01c43d-3170-4669-81a1-4157e3851f6a",
+      "alwaysOutputData": false,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        544,
+        272
+      ],
+      "id": "abd85525-2647-4457-9de9-8eaba72a38ae",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "1uOjqERbpJ1qz0hA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1377803566",
+        "text": "=Your Environment is : {{ $json.output.parseJson().environment_status }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        48
+      ],
+      "id": "1d9075c6-9aa0-40f8-8984-0eaed89ee674",
+      "name": "Send a text message",
+      "webhookId": "5a20f210-504c-4b25-8709-4a3d47ec67cf",
+      "credentials": {
+        "telegramApi": {
+          "id": "N6dcFZxoPrTHdbUH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "420aa63e-480e-4d73-a426-a1ee44b8cd97",
+              "leftValue": "={{ $json.output.parseJson().environment_status }}",
+              "rightValue": "READY",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "6453ec97-d259-445e-a8a2-5c248ccf8851",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        864,
+        64
+      ],
+      "id": "42e2622c-9404-4e1e-96e4-4c27dd4dfd16",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "https://qa.app.waas.sdsaz.us/auth/login",
+        "options": {}
+      },
+      "name": "API Health Check1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        304,
+        256
+      ],
+      "id": "7f782145-2ca6-4f73-b7ce-2fd1cd84cc6f"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "API Health Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API Health Check1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Health Check": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Analyze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Analyze": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Analyze",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Health Check1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Analyze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "22a07278-fe02-480b-a223-43f5d58c4ef7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "DhusIQfL128oqPBq",
+  "tags": []
+}

@@ -1,0 +1,244 @@
+{
+  "name": "Test Case Execution Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -656,
+        0
+      ],
+      "id": "5a6a065e-f176-41c9-b4e9-35bb6a3bc8b3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HUa8WnHA5kyLW5vWCpALipWi-NnoZSCgsnXiXbFNz84",
+          "mode": "list",
+          "cachedResultName": "_TestCases.xlsx",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HUa8WnHA5kyLW5vWCpALipWi-NnoZSCgsnXiXbFNz84/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1929219700,
+          "mode": "list",
+          "cachedResultName": "execution report",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HUa8WnHA5kyLW5vWCpALipWi-NnoZSCgsnXiXbFNz84/edit#gid=1929219700"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -448,
+        0
+      ],
+      "id": "f8709770-8e87-4bc5-baac-7615bb30ecdf",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ws6ttePmtRw8o1Iv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are acting as a QA Lead.\n\nBelow is today's automated test execution summary.\n\nTotal Tests: {{ $json[\"Total Tests\"] }}\nPassed: {{ $json.Passed }}\nFailed: {{ $json.Failed }}\nPass Rate: {{ $json[\"Pass Rate\"] }}%\n\n\nCritical Defects: {{ $json.Critical }}\n\nSeverity Breakdown:\nHigh: {{ $json.High }}\nMedium: {{ $json.Medium }}\nLow: {{ $json.Low }}\n\nInstructions:\n1. Highlight critical failures and their business impact.\n2. Interpret the overall pass rate health.\n3. Identify high-risk modules.\n4. Provide clear, actionable recommendations.\n5. Keep the summary executive-level, structured, and concise.\n6. Avoid repeating raw JSON in the response.\n\nDo NOT include the date in the title.\nDo NOT include placeholders like DD MMM.\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a QA Lead preparing a professional daily test execution summary for stakeholders.\n\nResponsibilities:\n- Highlight critical failures clearly\n- Interpret pass rate health\n- Identify risky modules\n- Recommend corrective actions\n- Keep it executive-level and concise\n- Focus on business risk and impact"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "4438688c-b62b-437a-aa71-55e8ea550ace",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "moonshotai/kimi-k2-instruct-0905",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        224
+      ],
+      "id": "5f898791-fafc-4288-910c-d64da1106e4e",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "1uOjqERbpJ1qz0hA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "bhaumik41294@gmail.com",
+        "subject": "={{ $('Edit Fields').item.json.subject }}",
+        "message": "={{ $('Edit Fields').item.json[\"Email Body\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        0
+      ],
+      "id": "3524f480-e624-4853-9827-5af23b18855c",
+      "name": "Send a message",
+      "webhookId": "d8fbf170-d310-4713-bc97-da80c09ae573",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "RzQlNBKCnoFiHOMM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "{{ $json[\"Email Body\"] }}"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        0
+      ],
+      "id": "a843fda2-ecb7-4a04-9a93-bd8a0a40c58c",
+      "name": "HTML",
+      "alwaysOutputData": false,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "27798211-e624-4a8f-bbd5-1f5229a46804",
+              "name": "subject",
+              "value": "=Daily QA Test Execution Summary - {{ new Date().toISOString().split('T')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "49cfa916-6543-46d1-a458-8e86b6de852f",
+              "name": "Email Body",
+              "value": "=<h2>Daily QA Test Execution Summary</h2>  <p><strong>Date:</strong> {{ new Date().toISOString().split('T')[0] }}</p>  <hr>  <div style=\"font-family: Arial, sans-serif; line-height:1.6;\"> {{$json.output.replace(/\\n/g, \"<br>\")}} </div>  <hr>  <p style=\"font-size:12px;color:gray;\"> Automated Report Generated via n8n Workflow </p>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        0
+      ],
+      "id": "485b0607-6709-44e2-9e9c-5d4488d4b4d2",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "58a3bc0e-7a3a-487e-892d-4fbce6998b03",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "AgSv5Bb2hi1Hsd0X",
+  "tags": []
+}

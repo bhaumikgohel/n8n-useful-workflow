@@ -1,0 +1,215 @@
+{
+  "name": "Test Cases Generation using JIRA Ticket",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -928,
+        -16
+      ],
+      "id": "92fea37c-3a88-4e70-b631-d56dfb22df4b",
+      "name": "When chat message received",
+      "webhookId": "01d8b5fb-45ca-479e-85d8-6bad4d581374"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "R – Role:\nYou are a Senior QA Engineer with strong expertise in STLC and functional testing.\n\nI – Input:\nUser provides a JIRA ticket ID or requirement text.\n\nC – Constraints:\n- Generate ONLY from the provided requirement.\n- If information is missing, write \"Needs clarification\".\n- Do NOT assume functionality beyond the description.\n\nE – Expectation:\nGenerate comprehensive functional test cases including:\n- Positive cases\n- Negative cases\n- Boundary cases (if applicable)\n\nPOT – Output Format:\nReturn STRICTLY valid JSON in this format:\n\n{\n  \"title\": \"Functional Test Cases – <Feature Name>\",\n  \"ticket\": \"<JIRA-ID>\",\n  \"testCases\": [\n    {\n      \"id\": \"TC001\",\n      \"scenario\": \"\",\n      \"preconditions\": \"\",\n      \"steps\": \"\",\n      \"expectedResult\": \"\",\n      \"priority\": \"\"\n    }\n  ]\n}\n\nReturn only JSON. No markdown. No explanation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -736,
+        -16
+      ],
+      "id": "25905c0a-58ab-4f1c-a9d4-16c2831fdfc7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "moonshotai/kimi-k2-instruct-0905",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -832,
+        224
+      ],
+      "id": "607d8497-a493-4690-bf27-b965e0812f52",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "1uOjqERbpJ1qz0hA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "https://docs.google.com/document/d/1vv6E_zdkhjJUu41GEcnkgiuI83KsYA9oNf9npw3fy-s/edit?usp=sharing",
+        "simple": "=={{$json[\"formattedText\"]}}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.formattedText }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -16
+      ],
+      "id": "b716316f-a221-4bc1-bb42-4a0d9db11387",
+      "name": "Update a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "Ij3WD97oxbar68zd",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"title\": {\n      \"type\": \"string\"\n    },\n    \"ticket\": {\n      \"type\": \"string\"\n    },\n    \"testCases\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": { \"type\": \"string\" },\n          \"scenario\": { \"type\": \"string\" },\n          \"preconditions\": { \"type\": \"string\" },\n          \"steps\": { \"type\": \"string\" },\n          \"expectedResult\": { \"type\": \"string\" },\n          \"priority\": { \"type\": \"string\" }\n        },\n        \"required\": [\n          \"id\",\n          \"scenario\",\n          \"preconditions\",\n          \"steps\",\n          \"expectedResult\",\n          \"priority\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\"title\", \"ticket\", \"testCases\"],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        176
+      ],
+      "id": "f811aab8-8ded-40aa-b8a8-18df5045ac27",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get raw AI output\nconst rawOutput = $input.item.json.output;\n\n// Parse JSON safely\nlet data;\n\ntry {\n  data = typeof rawOutput === \"string\" ? JSON.parse(rawOutput) : rawOutput;\n} catch (error) {\n  throw new Error(\"AI did not return valid JSON.\");\n}\n\n// Validate structure\nif (!data.testCases || !Array.isArray(data.testCases)) {\n  throw new Error(\"testCases array missing.\");\n}\n\n// Start building formatted plain text\nlet text = \"\";\n\n// Title\ntext += `Functional Test Cases – ${data.ticket}\\n\\n`;\n\n// Loop each test case\ndata.testCases.forEach(tc => {\n\n  text += \"--------------------------------------------------\\n\";\n  text += `${tc.id}\\n`;\n  text += `Scenario: ${tc.scenario}\\n`;\n  text += `Preconditions: ${tc.preconditions}\\n`;\n  text += `Steps:\\n`;\n\n  // Format steps nicely if numbered steps exist\n  if (tc.steps) {\n    const stepsArray = tc.steps.split(\"\\n\").filter(s => s.trim() !== \"\");\n    stepsArray.forEach(step => {\n      text += `  ${step.trim()}\\n`;\n    });\n  }\n\n  text += `Expected Result: ${tc.expectedResult}\\n`;\n  text += `Priority: ${tc.priority}\\n`;\n});\n\n// Closing line\ntext += \"--------------------------------------------------\\n\\n\";\n\n// Return formatted text\nreturn [{ json: { formattedText: text } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        -16
+      ],
+      "id": "f5957e10-9161-4c9f-95c5-a1979788c5ad",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "SCRUM-19",
+        "simplifyOutput": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jiraTool",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        208
+      ],
+      "id": "74f817de-27b1-4875-bed7-86101e635315",
+      "name": "JIRA Tool",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "qQIYc6mkrodaRLm8",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JIRA Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c3ecb647-2963-476f-8a46-336ee574e6c7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e44a872862d6db7d84536abac8f6b1c2e86d9f500330db415cf275127d3d826"
+  },
+  "id": "jFWrLoHXGULGf3qB",
+  "tags": []
+}
